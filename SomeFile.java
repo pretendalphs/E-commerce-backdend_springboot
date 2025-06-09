@@ -1,0 +1,6 @@
+// ...existing code...
+return userRepository.findAll()
+    .stream()
+    .map(user -> new UserDto(user.getId(), user.getName(), user.getEmail()))
+    .toList();
+// ...existing code...

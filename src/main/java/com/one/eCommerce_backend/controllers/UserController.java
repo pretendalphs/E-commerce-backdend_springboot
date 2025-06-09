@@ -1,15 +1,14 @@
 package com.one.eCommerce_backend.controllers;
 
-
 import com.one.eCommerce_backend.dtos.UserDto;
-import com.one.eCommerce_backend.entities.User;
+import com.one.eCommerce_backend.mappers.UserMapper;
 import com.one.eCommerce_backend.repositories.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Set;
 
 
 @RestController
@@ -17,11 +16,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/users")
 public class UserController {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public Iterable<UserDto> getAllUsers() {
-        return userRepository.findAll()
+    @GetMapping
+    public Iterable<UserDto> getAllUsers(
+            @RequestParam(required = false, defaultValue = "") String sort
+    ) {
+        if (!Set.of("name", "email").contains(sort))
+            sort = "name";
+        return userRepository.findAll(Sort.by(sort))
                 .stream()
-                .map(user -> new UserDto(user.getId(), user.getName(), user.getEmail()))
+//                .map(user -> new UserDto(user.getId(), user.getName(), user.getEmail()))
+                .map(userMapper::userToUserDto)
                 .toList();
     }
 
@@ -32,7 +38,6 @@ public class UserController {
         if (user == null) {
             return ResponseEntity.notFound().build();
         }
-        var userDto = new UserDto(user.getId(), user.getName(), user.getEmail());
-        return ResponseEntity.ok(userDto);
+        return ResponseEntity.ok(userMapper.userToUserDto(user));
     }
 }
