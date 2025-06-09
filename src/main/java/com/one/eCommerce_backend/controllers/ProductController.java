@@ -19,6 +19,7 @@ public class ProductController {
     @GetMapping
     public List<ProductDto> getProducts(
             @RequestParam(required = false, defaultValue = "", name = "categoryId") Byte categoryId
+
     ) {
         List<Product> products;
         if (categoryId != null && categoryId > 0) {

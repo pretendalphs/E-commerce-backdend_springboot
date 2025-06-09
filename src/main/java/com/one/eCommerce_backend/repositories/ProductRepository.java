@@ -12,5 +12,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @EntityGraph(attributePaths = "category")
     @Query("SELECT p FROM Product p")
-    List<Product> findAllWithCategory(String name);
+    List<Product> findAllWithCategory();
 }
