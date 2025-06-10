@@ -1,10 +1,9 @@
 package com.one.eCommerce_backend.controllers;
 
 import com.one.eCommerce_backend.dtos.ProductDto;
-import com.one.eCommerce_backend.dtos.RegisterNewProduct;
-import com.one.eCommerce_backend.dtos.UpdateProductRequest;
 import com.one.eCommerce_backend.entities.Product;
 import com.one.eCommerce_backend.mappers.ProductMapper;
+import com.one.eCommerce_backend.repositories.CategoryRepository;
 import com.one.eCommerce_backend.repositories.ProductRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +18,7 @@ import java.util.List;
 public class ProductController {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final CategoryRepository categoryRepository;
 
     @GetMapping
     public List<ProductDto> getProducts(
@@ -46,27 +46,40 @@ public class ProductController {
 
     @PostMapping()
     public ResponseEntity<ProductDto> createProduct(
-            @RequestBody RegisterNewProduct request,
+            @RequestBody ProductDto productDto,
             UriComponentsBuilder uriComponentsBuilder
     ) {
-        var product = productMapper.createProduct(request);
+        var category = categoryRepository.findById(productDto.getCategory_id().byteValue()).orElseThrow(null);
+        if (category == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        var product = productMapper.toEntity(productDto);
+        product.setCategory(category);
         productRepository.save(product);
-        var productDto = productMapper.toProduct(product);
-        var uri = uriComponentsBuilder.path("/products/{id}").buildAndExpand(productDto.getId()).toUri();
-        return ResponseEntity.created(uri).body(productDto);
+        product.setId(product.getId());
+        return ResponseEntity.created(
+                uriComponentsBuilder.path("/products/{id}").buildAndExpand(product.getId()).toUri()
+        ).body(productMapper.toProduct(product));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductDto> updateProduct(
             @PathVariable(name = "id") Long id,
-            @RequestBody UpdateProductRequest request
+            @RequestBody ProductDto productDto
     ) {
+        var category = categoryRepository.findById(productDto.getCategory_id().byteValue()).orElseThrow(null);
+        if (category == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
         var product = productRepository.findById(id).orElse(null);
         if (product == null) {
             return ResponseEntity.notFound().build();
         }
-        productMapper.UpdateProduct(request, product);
+        productMapper.UpdateProduct(productDto, product);
+        product.setCategory(category);
         productRepository.save(product);
+        product.setId(id);
         return ResponseEntity.ok().body(productMapper.toProduct(product));
     }
 
@@ -78,7 +91,7 @@ public class ProductController {
         }
         productRepository.delete(product);
         return ResponseEntity.ok().build();
-        
+
     }
 }
 
