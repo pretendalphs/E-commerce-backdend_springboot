@@ -4,9 +4,9 @@ import com.one.eCommerce_backend.dtos.ChangePasswordRequest;
 import com.one.eCommerce_backend.dtos.RegisterUserRequest;
 import com.one.eCommerce_backend.dtos.UpdateUserRequest;
 import com.one.eCommerce_backend.dtos.UserDto;
-import com.one.eCommerce_backend.entities.User;
 import com.one.eCommerce_backend.mappers.UserMapper;
 import com.one.eCommerce_backend.repositories.UserRepository;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -49,8 +49,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDto> createUser(
-
-            @RequestBody RegisterUserRequest request,
+            @Valid @RequestBody RegisterUserRequest request,
             UriComponentsBuilder uriComponentsBuilder
     ) {
         var user = userMapper.createUserDto(request);
@@ -104,7 +103,7 @@ public class UserController {
         user.setPassword(request.getNewPassword());
         userRepository.save(user);
         return ResponseEntity.noContent().build();
-        
+
 
     }
 } 
