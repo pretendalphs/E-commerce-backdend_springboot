@@ -1,0 +1,11 @@
+package com.one.eCommerce_backend.dtos;
+
+import lombok.Data;
+
+@Data
+public class RegisterNewProduct {
+    private String name;
+    private String description;
+    private Double price;
+    private Byte categoryId;
+}
