@@ -8,11 +8,9 @@ import com.one.eCommerce_backend.mappers.UserMapper;
 import com.one.eCommerce_backend.repositories.UserRepository;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -50,10 +48,14 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDto> createUser(
+    public ResponseEntity<UserDto> registerUser(
             @Valid @RequestBody RegisterUserRequest request,
             UriComponentsBuilder uriComponentsBuilder
     ) {
+        if (userRepository.existsByEmail(request.getEmail()))
+            return ResponseEntity.badRequest().body(
+                    new UserDto(null, null, "Email already exists")
+            );
         var user = userMapper.createUserDto(request);
         userRepository.save(user);
         var userDto = userMapper.userToUserDto(user);
@@ -107,5 +109,5 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    
+
 }
