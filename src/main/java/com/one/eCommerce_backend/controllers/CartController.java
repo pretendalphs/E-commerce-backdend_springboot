@@ -10,6 +10,7 @@ import com.one.eCommerce_backend.mappers.CartMapper;
 import com.one.eCommerce_backend.repositories.CartRepository;
 import com.one.eCommerce_backend.repositories.ProductRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -67,10 +68,11 @@ public class CartController {
             cartItem.setProduct(product);
             cartItem.setQuantity(1);
             cart.getCartItems().add(cartItem);
-    
+
 
         }
         cartRepository.save(cart);
-        return ResponseEntity.ok(null);
+        var cartItemDto = cartMapper.toDto(cartItem);
+        return ResponseEntity.status(HttpStatus.CREATED).body(cartItemDto);
     }
 }
