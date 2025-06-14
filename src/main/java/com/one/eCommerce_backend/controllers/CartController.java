@@ -4,7 +4,6 @@ package com.one.eCommerce_backend.controllers;
 import com.one.eCommerce_backend.dtos.AddItemToCartRequest;
 import com.one.eCommerce_backend.dtos.CartDto;
 import com.one.eCommerce_backend.dtos.CartItemDto;
-import com.one.eCommerce_backend.dtos.UpdateCartItemsRequest;
 import com.one.eCommerce_backend.entities.Cart;
 import com.one.eCommerce_backend.entities.CartItem;
 import com.one.eCommerce_backend.mappers.CartMapper;
@@ -16,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -57,7 +55,7 @@ public class CartController {
         if (product == null) {
             return ResponseEntity.notFound().build();
         }
-        var cartItem = cart.getItems().stream()
+        var cartItem = cart.getCartItems().stream()
                 .filter(item -> item.getProduct().getId().equals(product.getId()))
                 .findFirst()
                 .orElse(null);
@@ -69,55 +67,12 @@ public class CartController {
             cartItem.setCart(cart);
             cartItem.setProduct(product);
             cartItem.setQuantity(1);
-            cart.getItems().add(cartItem);
+            cart.getCartItems().add(cartItem);
+
+
         }
         cartRepository.save(cart);
         var cartItemDto = cartMapper.toDto(cartItem);
         return ResponseEntity.status(HttpStatus.CREATED).body(cartItemDto);
-    }
-
-    @GetMapping("/{cartId}")
-    public ResponseEntity<CartDto> getCart(
-            @PathVariable UUID cartId
-    ) {
-        var cart = cartRepository.getCartWithItems(cartId).orElse(null);
-        if (cartId == null) {
-            return ResponseEntity.notFound().build();
-        }
-        var cartDto = cartMapper.toDto(cart);
-        return ResponseEntity.ok(cartDto);
-
-    }
-
-    @PutMapping("/{cartId}/items/{productId}")
-    public ResponseEntity<?> updateCartItems(
-            @PathVariable UUID cartId,
-            @PathVariable Long productId,
-            @RequestBody UpdateCartItemsRequest request
-    ) {
-        var cart = cartRepository.getCartWithItems(cartId)
-                .orElse(null);
-        if (cart == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    Map.of(
-                            "error", "Cart not found"
-                    )
-            );
-        }
-        var cartItem = cart.getItems().stream()
-                .filter(item -> item.getProduct().getId().equals(productId))
-                .findFirst()
-                .orElse(null);
-        if (cartItem == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    Map.of(
-                            "error", "Cart item not found"
-                    )
-            );
-        }
-        cartItem.setQuantity(request.getQuantity());
-        cartRepository.save(cart);
-        return ResponseEntity.ok(cartMapper.toDto(cartItem));
-
     }
 }
