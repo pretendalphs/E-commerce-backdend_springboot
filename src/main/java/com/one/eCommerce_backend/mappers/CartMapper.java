@@ -9,9 +9,11 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface CartMapper {
+
+    @Mapping(target = "totalPrice", expression = "java(cart.getTotalPrice())")
+    @Mapping(target = "items", source = "items")
     CartDto toDto(Cart cart);
 
     @Mapping(target = "totalPrice", expression = "java(cartItem.getTotalPrice())")
-    @Mapping(source = "product", target = "cartProduct")
     CartItemDto toDto(CartItem cartItem);
 }
