@@ -1,16 +1,14 @@
 package com.one.eCommerce_backend.controllers;
 
-import com.one.eCommerce_backend.dtos.UserDto;
 import com.one.eCommerce_backend.dtos.UserLogin;
-import com.one.eCommerce_backend.repositories.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/auth")
 @RestController
@@ -18,21 +16,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody UserLogin userLogin
     ) {
-        var user = userRepository.findByEmail(userLogin.getEmail()).orElse(null);
-
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        if (!passwordEncoder.matches(userLogin.getPassword(), user.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        userLogin.getEmail(),
+                        userLogin.getPassword()
+                )
+        );
         return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Void> handleBadCredentialsException() {
+        return ResponseEntity.status(401).build();
     }
 }
